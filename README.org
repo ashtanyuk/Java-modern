@@ -1,0 +1,113 @@
+#+TITLE: Особенности работы с Java последних версий
+#+SETUPFILE: ../../css/level-2.orgcss
+
+
+* Особенности java последних версий
+
+Современные версии Java имеют свои особенности, комплекты разработчика претерпели изменения
+
+- модульная система (java 9)
+- оболочка *jshell*
+- условия рецензирования
+
+
+* Модульная система
+
+Фактически *модуль* представляет группу пакетов или ресурсов, объединенных в одно целое и к которым можно обращаться по имени модуля.
+
+Модуль состоит из группы пакетов. Также модуль включает список все пакетов, которые входят в модуль, и список всех модулей, от которых зависит данный модуль. Дополнительно (но необязательно) он может включать файлы ресурсов или файлы нативных библиотек.
+
+Модуль размещается в отдельном каталоге на диске, имеющий название такое же, как и у модуля.
+
+В его состав входит специальный служебный файл *module-info.java*:
+
+#+begin_src java
+module имя_модуля {
+}
+#+end_src
+
+** Пример простого модуля
+
+В модуль должен обязательно входить хотя бы один пакет. Рассмотрим следующую структуру:
+
+#+begin_src java
+└── hello
+    ├── greet
+    │   ├── Hello.class
+    │   └── Hello.java
+    ├── module-info.class
+    └── module-info.java
+#+end_src
+
+В модуле по имени *hello* расположен пакет *greet*, в котором определен класс *Hello* со следующим содержимым:
+
+#+begin_src java
+package greet;
+
+class Hello {
+    public static void main(String[] args) {
+        System.out.println("Hello!");
+    }
+}
+#+end_src
+
+Мы компилируем и запускаем проект, находясь в каталоге, родительском для модуля:
+
+#+begin_src java
+javac hello/module-info.java hello/greet/Hello.java
+java --module-path hello --module hello/greet.Hello
+#+end_src
+
+* Использование JavaFX в последних версиях
+
+С появлением версии Java 11, пакет JavaFX перестал быть стандартной частью JDK.
+
+Его нужно установить отдельно с этого адреса:
+
+[[https://gluonhq.com/products/javafx]]
+
+Сначала необходимо скачать и распаковать пакеты. Далее, переносим пакет в каталог ~/Library/Java~, где на маке хранятся все jdk:
+
+#+begin_src java
+sudo mv ~/Downloads/javafx-sdk-11.0.2 /Library/Java/`
+#+end_src
+
+Создадим пробный файл **HelloFX.java**:
+
+#+begin_src java
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
+
+public class HelloFX extends Application {
+
+    @Override
+    public void start(Stage stage) {
+        String javaVersion = System.getProperty("java.version");
+        String javafxVersion = System.getProperty("javafx.version");
+        Label l = new Label("Hello, JavaFX " + javafxVersion + ", 
+                            running on Java " + javaVersion + ".");
+        Scene scene = new Scene(new StackPane(l), 640, 480);
+        stage.setScene(scene);
+        stage.show();
+    }
+    public static void main(String[] args) {
+        launch();
+    }
+}
+#+end_src
+
+Устанавливаем значение переменной:
+
+~export PATH_TO_FX=/Library/Java/javafx-sdk-11.0.2/lib~
+
+Теперь можно компилировать:
+
+~javac --module-path $PATH_TO_FX --add-modules javafx.controls HelloFX.java~
+
+А теперь можно запускать:
+
+~java --module-path $PATH_TO_FX --add-modules javafx.controls HelloFX~
+
